@@ -1,7 +1,5 @@
-# ==== ARQUIVO DE BANCO ====
 arquivo_banco = "banco.txt"
 
-# função só pra garantir que o arquivo existe
 def criar_arquivo():
     try:
         open(arquivo_banco, "x").close()
@@ -9,7 +7,6 @@ def criar_arquivo():
         pass
 
 
-# FUNÇÃO PARA LER TUDO
 def ler_banco():
     dados = []
     try:
@@ -24,14 +21,12 @@ def ler_banco():
     return dados
 
 
-# FUNÇÃO PARA SALVAR TUDO
 def salvar_banco(lista):
     with open(arquivo_banco, "w", encoding="utf-8") as f:
         for item in lista:
             f.write("|".join(item) + "\n")
 
 
-# FUNÇÃO PARA GERAR ID (bem iniciante mesmo)
 def gerar_id():
     dados = ler_banco()
     if len(dados) == 0:
@@ -41,7 +36,6 @@ def gerar_id():
         return str(int(ultimo) + 1)
 
 
-# CADASTRAR
 def cadastrar(cliente, pet, tipo, preco, data):
     dados = ler_banco()
     novo = [
@@ -56,8 +50,6 @@ def cadastrar(cliente, pet, tipo, preco, data):
     dados.append(novo)
     salvar_banco(dados)
 
-
-# ATUALIZAR
 def atualizar(id_edit, cliente, pet, tipo, preco, data):
     dados = ler_banco()
     for item in dados:
@@ -70,8 +62,6 @@ def atualizar(id_edit, cliente, pet, tipo, preco, data):
             item[6] = "ativo"
     salvar_banco(dados)
 
-
-# DELETAR (marcar como inativo)
 def deletar(id_delete):
     dados = ler_banco()
     for item in dados:
@@ -80,7 +70,6 @@ def deletar(id_delete):
     salvar_banco(dados)
 
 
-# PEGAR APENAS ATIVOS
 def listar_ativos():
     dados = ler_banco()
     ativos = []
@@ -90,44 +79,32 @@ def listar_ativos():
     return ativos
 
 
-# Criar o arquivo caso não exista
 criar_arquivo()
-# ==== PARTE 2/2 - INTERFACE (AMADORA) ====
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Treeview
 from tkcalendar import DateEntry
 from datetime import datetime
 
-# OBS: este código usa as funções da PARTE 1:
-# criar_arquivo(), ler_banco(), salvar_banco(), gerar_id(),
-# cadastrar(...), atualizar(...), deletar(...), listar_ativos()
-# Certifique-se de colar a PARTE 1/2 antes desta parte no mesmo arquivo.
-
-# janela principal
 root = Tk()
 root.title("Sistema de Agendamentos - Versao Amadora")
 root.geometry("960x600")
 root.resizable(False, False)
 
-# app (bem simples)
 class App:
     def __init__(self, master):
         self.master = master
         self.container = Frame(master, bg="#123456")
         self.container.place(relwidth=1, relheight=1)
-        # crio as "telas" como frames
         self.login = LoginPage(self.container, self)
         self.home = HomePage(self.container, self)
         self.lista = ListPage(self.container, self)
         self.novo = NewPage(self.container, self)
-        # mostra login primeiro
         self.show(self.login)
 
     def show(self, frame):
         frame.lift()
 
-# ---------- Telas (bem simples) ----------
 class LoginPage(Frame):
     def __init__(self, parent, app):
         super().__init__(parent, bg="#123456")
@@ -169,17 +146,14 @@ class ListPage(Frame):
         self.place(relwidth=1, relheight=1)
         Label(self, text="LISTAR AGENDAMENTOS", fg="white", bg="#123456", font=("Arial",16)).place(relx=0.5, rely=0.04, anchor="center")
 
-        # busca por id
         Label(self, text="ID:", fg="white", bg="#123456").place(relx=0.02, rely=0.12, anchor="w")
         self.entry_busca = Entry(self)
         self.entry_busca.place(relx=0.06, rely=0.12, relwidth=0.12)
         Button(self, text="Buscar", command=self.buscar).place(relx=0.19, rely=0.12, width=90)
 
-        # mostrar inativos?
         self.show_inativos = BooleanVar(value=False)
         Checkbutton(self, text="Mostrar inativos", variable=self.show_inativos, bg="#123456", fg="white", command=self.load).place(relx=0.30, rely=0.12)
 
-        # tree
         self.frame_tree = Frame(self, bd=2)
         self.frame_tree.place(relx=0.02, rely=0.18, relwidth=0.96, relheight=0.68)
         cols = ("ID","Cliente","Pet","Tipo","Preço","Data")
@@ -196,22 +170,16 @@ class ListPage(Frame):
         Button(self, text="Atualizar lista", command=self.load).place(relx=0.52, rely=0.88, width=140)
         Button(self, text="Voltar", command=lambda: app.show(app.home)).place(relx=0.72, rely=0.88, width=140)
 
-        # carrega
         self.load()
 
     def load(self):
-        # limpa
         for i in self.tree.get_children():
             self.tree.delete(i)
-        # pega dados
         if self.show_inativos.get():
-            dados = ler_banco()  # pega tudo
+            dados = ler_banco()  
         else:
             dados = listar_ativos()
         for r in dados:
-            # r pode vir como lista de strings do arquivo
-            # r = [id, cliente, pet, tipo, preco, data, status]
-            # mostrar só as colunas visuais
             self.tree.insert("", "end", values=(r[0], r[1], r[2], r[3], r[4], r[5]))
 
     def buscar(self):
@@ -274,7 +242,6 @@ class ListPage(Frame):
         if status == "inativo":
             if not messagebox.askyesno("Inativo", "Registro inativo. Editar mesmo assim?"):
                 return
-        # pop-up medio 500x400
         popup = Toplevel(self)
         popup.title("Editar")
         popup.geometry("500x400")
@@ -371,10 +338,8 @@ class NewPage(Frame):
         cadastrar(c, p, t, pr, d)
         messagebox.showinfo("Sucesso","Agendamento criado")
         self.open_for_create()
-        # atualiza lista se aberta
         self.app.lista.load()
 
-# inicializa o app amador
-criar_arquivo()  # garante arquivo (da parte 1)
+criar_arquivo()  
 app = App(root)
 root.mainloop()
